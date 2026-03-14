@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # 1. Observabilidade (Sobe primeiro, não depende de ninguém)
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - microservices-net
+
+  # 2. Descoberta de Serviços
+  eureka-server:
+    build: ../Eureka  # MUDE ISTO: Coloque o nome exato da sua pasta do Eureka
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices-net
+
+  # 3. Servidor de Configurações
+  config-server:
+    build: ../Config-server  # MUDE ISTO: Nome exato da pasta do Config Server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      # Passando as variáveis para ele se registar no Eureka do Docker
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=config-server
+    depends_on:
+      - eureka-server
+    networks:
+      - microservices-net
+
+  # 4. A sua API de Autorização
+  authorization-api:
+    build: ../Authorization-api  # MUDE ISTO: Nome exato da pasta da Auth API
+    container_name: authorization-api
+    ports:
+      - "8081:8081"
+    environment:
+      # A MÁGICA ACONTECE AQUI: Injetando os nomes dos contentores!
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=authorization-api
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    depends_on:
+      - config-server
+      - eureka-server
+      - zipkin
+    networks:
+      - microservices-net
+
+  # 5. O Gateway (A Porta de Entrada)
+  gateway-api:
+    build: ../Gateway  # MUDE ISTO: Nome exato da pasta do Gateway
+    container_name: gateway-api
+    ports:
+      - "8765:8765"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_HOSTNAME=gateway-api
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+    depends_on:
+      - config-server
+      - eureka-server
+      - zipkin
+    networks:
+      - microservices-net
+
+# Criação de uma rede isolada só para os seus microsserviços
+networks:
+  microservices-net:
+    driver: bridge
