@@ -1,0 +1,28 @@
+# Profile de desenvolvimento — leve, sem ELK nem Kafka
+#
+# USO:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Consumo estimado de memória: ~3-4GB
+# (vs ~16GB do profile completo com ELK + Kafka)
+#
+# O que NÃO sobe nesse profile:
+#   - Elasticsearch (~2GB)
+#   - Logstash (~512MB)
+#   - Kibana (~512MB)
+#   - Kafka (~1GB)
+#   - Zookeeper (~256MB)
+
+services:
+  # Sobrescreve os microserviços para não tentar enviar logs pro Logstash
+  authorization-api:
+    environment:
+      LOGSTASH_URL: ""
+
+  user-api:
+    environment:
+      LOGSTASH_URL: ""
+
+  gateway-api:
+    environment:
+      LOGSTASH_URL: ""

@@ -49,22 +49,6 @@ services:
           memory: 128m
 
   # ─────────────────────────────────────────────
-  # OBSERVABILIDADE
-  # ─────────────────────────────────────────────
-
-  zipkin:
-    image: openzipkin/zipkin:3
-    container_name: zipkin
-    ports:
-      - "9411:9411"
-    networks:
-      - microservices-net
-    deploy:
-      resources:
-        limits:
-          memory: 256m
-
-  # ─────────────────────────────────────────────
   # SPRING CLOUD
   # ─────────────────────────────────────────────
 
@@ -120,7 +104,6 @@ services:
       EUREKA_URL: http://eureka-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: gateway-api
       SPRING_PROFILES_ACTIVE: docker
-      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
       JWT_TOKEN_SECRET: ${JWT_SECRET}
       SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
       FRONTEND_URL: ${FRONTEND_URL}
@@ -151,7 +134,6 @@ services:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://eureka-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: user-api
-      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
       SPRING_DATASOURCE_URL: jdbc:postgresql://db-postgre:5432/user-api
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_ROOT_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ROOT_PASS}
@@ -185,7 +167,6 @@ services:
       CONFIG_SERVER_URL: http://config-server:8888
       EUREKA_URL: http://eureka-server:8761/eureka/
       EUREKA_INSTANCE_HOSTNAME: authorization-api
-      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
       JWT_TOKEN_SECRET: ${JWT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}
       DEFAULT_SOCIAL_PASSWORD: ${DEFAULT_SOCIAL_PASSWORD}
@@ -203,42 +184,6 @@ services:
       - microservices-net
     healthcheck:
       test: [ "CMD-SHELL", "wget -q -O /dev/null http://localhost:8081/actuator/health || exit 1" ]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 512m
-
-  souls-guide-api:
-    image: xcorpiiion/souls-guide-api:latest
-    container_name: souls-guide-api
-    ports:
-      - "8095:8095"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVER_URL: http://config-server:8888
-      SPRING_CLOUD_CONFIG_ENABLED: "true"
-      EUREKA_URL: http://eureka-server:8761/eureka/
-      EUREKA_INSTANCE_HOSTNAME: souls-guide-api
-      ZIPKIN_URL: http://zipkin:9411/api/v2/spans
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db-postgre:5432/souls-guide
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_ROOT_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ROOT_PASS}
-      JWT_TOKEN_SECRET: ${JWT_SECRET}
-      SPRING_MAIN_ALLOW_BEAN_DEFINITION_OVERRIDING: "true"
-      USER_API_INTERNAL_URL: http://user-api:8090
-    depends_on:
-      db-postgre:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
-    networks:
-      - microservices-net
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q -O /dev/null http://localhost:8095/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
