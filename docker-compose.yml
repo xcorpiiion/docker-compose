@@ -192,6 +192,10 @@ services:
       REDIS_HOST: redis
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret}
       USER_API_INTERNAL_URL: http://user-api:8090
+      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
     depends_on:
       config-server:
         condition: service_healthy
